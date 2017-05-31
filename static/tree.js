@@ -23,7 +23,7 @@ define(function(require, exports, module) {
                 }, {
                     title: "节点内容",
                     id: "nodeContent"
-                }], )
+                }])
             };
         }
         /**
@@ -137,6 +137,8 @@ define(function(require, exports, module) {
                     $(obj).find("span").removeClass("icon-file").addClass("icon-folder-open")
                     var oSpan2 = $("<span></span>").addClass("icon icon-file");
                     var oA = $("<a></a>").on("click", toggleSelected).text(data[0]).prepend(oSpan2).attr("data", data[1]);
+                    setting.isEdit ? oA.on("dblclick", editLeaf) : "";
+                    setting.rightClick ? oA.on("contextmenu", rightClick) : "";
                     var oLi = $("<li></li>").append(oA);
                     $(obj).after($("<ul></ul>").append(oLi));
                 }
