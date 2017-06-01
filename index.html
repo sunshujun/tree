@@ -14,35 +14,38 @@
 
 <body>
     <div id="wrap" style="width:200px;margin:30px auto">
-        <!--<ul id="tree" class="level0 tree">
-		    <li>
-		    	<span class="icon icon-triangle-open"></span>
-		    	<a><span class="icon icon-folder-open"></span>父节点一</a>
-		    	<ul class="level1">
-		    		<li>
-				    	<span class="icon icon-triangle-close"></span>
-				    	<a><span class="icon icon-folder-close"></span>子节点一</a>
-				    	<ul>
-				    		<li></li>
-				    	</ul>
-				    </li>
-				    <li> 
-				    	<a><span class="icon icon-file"></span>子节点二</a>
-				    </li>
-				    <li> 
-				    	<a><span class="icon icon-file"></span>子节点二</a> 
-				    </li>
-				</ul>
-		    </li>
-		    <li>
-		    	<span class="icon icon-triangle-close"></span>
-		    	<a>父节点二</a>
-		    </li>
-		    <li>
-		    	<span class="icon icon-triangle-close"></span>
-		    	<a>父节点二</a>
-		    </li>
-		</ul>-->
+      <!-- <ul id="tree" class="level0 tree">
+                 <li>
+                     <span class="icon icon-triangle-open"></span>
+                     <a><span class="icon icon-folder-open"></span>父节点一</a>
+                     <ul class="level1">
+                         <li>
+                             <span class="icon icon-triangle-close"></span>
+                             <a><span class="icon icon-folder-close"></span>子节点一</a>
+                             <ul>
+                                 <li></li>
+                             </ul>
+                         </li>
+                         <li> 
+                             <a><span class="icon icon-file"></span>子节点二</a>
+                         </li>
+                         <li> 
+                             <a><span class="icon icon-file"></span>子节点二</a> 
+                         </li>
+                     </ul>
+                 </li>
+                 <li> 
+                     <a><span class="icon icon-checkbox-no"></span>
+                            <span class="icon icon-triangle-close"></span>父节点二
+                   </a>
+                 </li>
+                 <li> 
+                     <a>
+                     <span class="icon icon-checkbox-selected-part"></span>
+                     <span class="icon icon-triangle-close"></span>父节点二
+                     </a>
+                 </li>
+             </ul>    -->
     </div>
       
 
@@ -84,12 +87,13 @@
         data: "www.fu3.com"
     }];
     var setting = {
-        time: 200,
-        isEdit: true,
-        rightClick: {
+        time: 200,  //设置展开收缩时间
+        isEdit: true,  //是否开启编辑功能
+        rightClick: {   //是否开启右击增删功能
             isAdd: true,
             isRemove: true
-        }
+        },
+        isChecked:true
     };
 
     seajs.use("./static/tree.js", function(tree) {

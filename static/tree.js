@@ -12,7 +12,7 @@ define(function(require, exports, module) {
     function appendTree(node, id, setting) {
         setting = setting || {};
 
-        //如果需要添加数据功能，引入modal模板，并该function
+        //如果需要添加数据功能，引入modal模板并执行该function
         var modal = null;
         if (setting.rightClick) {
             if (setting.rightClick.isAdd) {
@@ -26,6 +26,8 @@ define(function(require, exports, module) {
                 }])
             };
         }
+
+
         /**
          * 父节点点击事件，点击图标收缩下级树结构
          */
@@ -46,22 +48,13 @@ define(function(require, exports, module) {
             oldSelected = $(this);
         }
 
-        /**
-         * 改变节点数据，并保存到sessionStroage中
-         * 
-         * @param {Array} id id为该叶子节点 
-         * @param {string} value  需要改变的值  
-         */
-        function changeNode(id, value) {
-
-        }
 
         /**
          * 双击编辑叶子节点
          */
         function editLeaf() {
             var oA = $(this);
-            var oSpan = oA.find("span")[0];
+            var oSpan = oA.find("span").clone(true);
             oInput = $("<input type='text' value=" + $(this).text() + ">");
 
             function changeCon() {
@@ -93,7 +86,6 @@ define(function(require, exports, module) {
                 var oLi1 = $("<li></li>").attr("class", "add-node").html("<button>添加子节点</button>").on("click", function() {
                     addNode(_this);
                 });
-
                 oUl.append(oLi1);
             }
             if (setting.rightClick.isRemove) {
@@ -125,18 +117,20 @@ define(function(require, exports, module) {
             modal.find(".confirm").one("click", function() {
                 modal.addClass("hide");
                 var data = modal.getValue();
-                if ($(obj).next().is("ul")) {
+                if ($(obj).next().is("ul")) { //判断点击的该节点是否有子节点
                     var oSpan = $("<span></span>").addClass("icon icon-file");
-                    var oA = $("<a></a>").on("click", toggleSelected).text(data[0]).prepend(oSpan).attr("data", data[1]);
+                    var oSpan2 = setting.isChecked ? addCheckbox() : "";
+                    var oA = $("<a></a>").on("click", toggleSelected).text(data[0]).prepend(oSpan2, oSpan).attr("data", data[1]);
                     setting.isEdit ? oA.on("dblclick", editLeaf) : "";
                     setting.rightClick ? oA.on("contextmenu", rightClick) : "";
                     $(obj).next().append($("<li></li>").append(oA));
                 } else {
                     var oSpan1 = $("<span></span>").addClass("icon icon-triangle-open").on('click', shrinkTree);
                     $(obj).before(oSpan1);
-                    $(obj).find("span").removeClass("icon-file").addClass("icon-folder-open")
+                    $(obj).find("span").removeClass("icon-file").addClass("icon-folder-open");
                     var oSpan2 = $("<span></span>").addClass("icon icon-file");
-                    var oA = $("<a></a>").on("click", toggleSelected).text(data[0]).prepend(oSpan2).attr("data", data[1]);
+                    var oSpan3 = setting.isChecked ? addCheckbox() : "";
+                    var oA = $("<a></a>").on("click", toggleSelected).text(data[0]).prepend(oSpan3, oSpan2).attr("data", data[1]);
                     setting.isEdit ? oA.on("dblclick", editLeaf) : "";
                     setting.rightClick ? oA.on("contextmenu", rightClick) : "";
                     var oLi = $("<li></li>").append(oA);
@@ -146,43 +140,81 @@ define(function(require, exports, module) {
         }
 
         /**
+         * 创建树结构复选框，并添加处理事件
+         */
+        function addCheckbox() {
+            var oSpan = $("<span></span>").addClass("icon icon-checkbox-no");
+            oSpan.on("click", function() { 
+                var oUl = $(this).next().next();
+                $(this).toggleClass('icon-checkbox-no icon-checkbox-selected-full');
+                if (oUl.is("ul")) {
+                    if ($(this).hasClass("icon-checkbox-selected-full")) {
+                        oUl.find(".icon-checkbox-no,.icon-checkbox-selected-part").addClass('icon-checkbox-selected-full').
+                              removeClass("icon-checkbox-selected-part icon-checkbox-no");
+                    } else {
+                        oUl.find(".icon-checkbox-selected-full,.icon-checkbox-selected-part").addClass('icon-checkbox-no').
+                        removeClass("icon-checkbox-selected-full icon-checkbox-selected-part");
+                    }
+                } 
+                var oUls = $(this).parentsUntil(".tree").filter("ul");
+                for (var i = 0; i < oUls.length; i++) {
+                    if ($(oUls[i]).find(".icon-checkbox-no").length) {
+                        if ($(oUls[i]).find(".icon-checkbox-no").length === $(oUls[i]).find("[class*='icon-checkbox']").length) {
+                            $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-no").
+                            removeClass("icon-checkbox-selected-full", "icon-checkbox-selected-part");
+                        } else {
+                            $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-selected-part").
+                            removeClass("icon-checkbox-selected-full icon-checkbox-no");
+                        } 
+                    } else {
+                        $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-selected-full").
+                        removeClass("icon-checkbox-selected-part icon-checkbox-no");
+                    }
+                }
+            })
+            return oSpan;
+        }
+        /**
          * 使用递归遍历数组，创建树结构
          *
          * @param {Array} node为传入的数据
          * @return {Object} 返回树结构
          */
-        var level = 0; 
+        var level = 0;
+
         function createTree(node) {
             var oUl = $("<ul></ul>");
             oUl.id = level++;
-            var arr = node.map(function(item, index) { 
+            var arr = node.map(function(item, index) {
                 if (item.children) {
-                    var oSpan = $("<span></span>").addClass("icon icon-triangle-close"); 
+                    var oSpan = $("<span></span>").addClass("icon icon-triangle-close");
                     oSpan.on('click', shrinkTree);
+                    var oSpan2 = setting.isChecked ? addCheckbox() : "";
                     var oUl1 = createTree(item.children);
-                    if(item.open || !(oUl.id)){
-                          oSpan.removeClass("icon-triangle-close").addClass("icon-triangle-open");
-                          var oA = $("<a></a>").html("<span class='icon icon-folder-open'></span>" + item.name);
-                    }else{ 
-                         oUl1.slideUp();
-                         var oA = $("<a></a>").html("<span class='icon icon-folder-close'></span>" + item.name);
+                    if (item.open || !(oUl.id)) {
+                        oSpan.removeClass("icon-triangle-close").addClass("icon-triangle-open");
+                        var oA = $("<a></a>").html("<span class='icon icon-folder-open'></span>" + item.name);
+                    } else {
+                        oUl1.slideUp();
+                        var oA = $("<a></a>").html("<span class='icon icon-folder-close'></span>" + item.name);
                     }
                     setting.rightClick ? oA.on("contextmenu", rightClick) : "";
-                    return $("<li></li>").append(oSpan, oA, oUl1.attr("id", oUl.id + "" + index));
+                    return $("<li></li>").append(oSpan, oSpan2, oA, oUl1.attr("id", oUl.id + "" + index));
                 } else {
                     var oSpan = $("<span></span>").addClass("icon icon-file");
+                    var oSpan2 = setting.isChecked ? addCheckbox() : "";
                     var oA = $("<a></a>").on("click", toggleSelected).text(item.name).prepend(oSpan);
                     setting.isEdit ? oA.on("dblclick", editLeaf) : "";
                     setting.rightClick ? oA.on("contextmenu", rightClick) : "";
                     item.data ? oA.attr("data", item.data) : "";
-                    return $("<li></li>").append(oA);
+                    return $("<li></li>").append(oSpan2, oA);
                 }
-            }) 
-            oUl.append(arr); 
+            })
+            oUl.append(arr);
             return oUl;
         };
 
-        var tree = createTree(node).addClass("tree"); 
+        var tree = createTree(node).addClass("tree");
         $(id).append(tree);
     }
 
