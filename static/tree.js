@@ -146,12 +146,12 @@ define(function(require, exports, module) {
             var oSpan = $("<span></span>").addClass("icon icon-checkbox-no");
             oSpan.on("click", function() { 
                 var oUl = $(this).next().next();
-                $(this).toggleClass('icon-checkbox-no icon-checkbox-selected-full');
+                $(this).toggleClass('icon-checkbox-no icon-checkbox-selected-full ').removeClass("icon-checkbox-selected-part");
                 if (oUl.is("ul")) {
                     if ($(this).hasClass("icon-checkbox-selected-full")) {
                         oUl.find(".icon-checkbox-no,.icon-checkbox-selected-part").addClass('icon-checkbox-selected-full').
                               removeClass("icon-checkbox-selected-part icon-checkbox-no");
-                    } else {
+                    } else { 
                         oUl.find(".icon-checkbox-selected-full,.icon-checkbox-selected-part").addClass('icon-checkbox-no').
                         removeClass("icon-checkbox-selected-full icon-checkbox-selected-part");
                     }
