@@ -182,9 +182,7 @@ define(function(require, exports, module) {
                     }
                     oldArr = newArr;
                 }
-            });
-
-
+            }); 
             return oSearch.append(oInput, oImg);
         }
         /**
@@ -193,8 +191,7 @@ define(function(require, exports, module) {
          * @param {Array} node为传入的数据
          * @return {Object} 返回树结构
          */
-        var level = 0;
-
+        var level = 0; 
         function createTree(node) {
             var oUl = $("<ul></ul>");
             oUl.id = level++;
