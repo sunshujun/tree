@@ -12,22 +12,6 @@ define(function(require, exports, module) {
     function appendTree(node, id, setting) {
         setting = setting || {};
 
-        //如果需要添加数据功能，引入modal模板并执行该function
-        var modal = null;
-        if (setting.rightClick) {
-            if (setting.rightClick.isAdd) {
-                appendModal = require("./modal.js");
-                modal = appendModal("添加内容", [{
-                    title: "节点名称",
-                    id: 'nodeName'
-                }, {
-                    title: "节点内容",
-                    id: "nodeContent"
-                }])
-            };
-        }
-
-
         /**
          * 父节点点击事件，点击图标收缩下级树结构
          */
@@ -40,7 +24,7 @@ define(function(require, exports, module) {
         /**
          * 节点点击事件，改变背景样式
          */
-        var oldSelected = $(".tree a:first")
+        var oldSelected = $(".tree a:first");
 
         function toggleSelected() {
             oldSelected.removeClass("cur-selected");
@@ -52,10 +36,10 @@ define(function(require, exports, module) {
         /**
          * 双击编辑叶子节点
          */
-        function editLeaf() {
-            var oA = $(this);
+        function editLeaf(_this) {
+            var oA = $(_this);
             var oSpan = oA.find("span").clone(true);
-            oInput = $("<input type='text' value=" + $(this).text() + ">");
+            oInput = $("<input type='text' value=" + oA.text() + ">");
 
             function changeCon() {
                 oA.text(oInput.val()).prepend(oSpan);
@@ -73,30 +57,15 @@ define(function(require, exports, module) {
         /**
          * 右击叶子节点,弹出增删选项
          */
-        var oldModel = null;
-
         function rightClick(event) {
-            var _this = this;
-            oldModel ? oldModel.remove() : "";
+            _this = this;
             evevt = event || window.event;
             event.preventDefault();
             event.returnValue = false;
-            var oUl = $("<ul></ul>").attr("id", "tree-panel").css({ "top": event.clientY + "px", "left": event.clientX + "px" })
-            if (setting.rightClick.isAdd) {
-                var oLi1 = $("<li></li>").attr("class", "add-node").html("<button>添加子节点</button>").on("click", function() {
-                    addNode(_this);
-                });
-                oUl.append(oLi1);
-            }
-            if (setting.rightClick.isRemove) {
-                var oLi2 = $("<li></li>").attr("class", "remove-node").html("<button>删除该节点</button>").on("click", function() {
-                    removeNode(_this);
-                });
-
-                oUl.append(oLi2);
-            }
-            oldModel = oUl;
-            $("body").append(oUl).one("click", function() { oUl.remove() });
+            panel.css({ "display": "block", "top": event.clientY + "px", "left": event.clientX + "px" });
+            $("body").one("click", function() {
+                panel.css("display", "none");
+            })
         }
 
         /**
@@ -144,18 +113,25 @@ define(function(require, exports, module) {
          */
         function addCheckbox() {
             var oSpan = $("<span></span>").addClass("icon icon-checkbox-no");
-            oSpan.on("click", function() { 
+            oSpan.on("click", function() {
                 var oUl = $(this).next().next();
-                $(this).toggleClass('icon-checkbox-no icon-checkbox-selected-full ').removeClass("icon-checkbox-selected-part");
+
+                if ($(this).hasClass("icon-checkbox-selected-part")) {
+                    $(this).removeClass("icon-checkbox-selected-part").addClass("icon-checkbox-no");
+                } else {
+                    $(this).toggleClass('icon-checkbox-no icon-checkbox-selected-full ').removeClass("icon-checkbox-selected-part");
+                }
+
                 if (oUl.is("ul")) {
                     if ($(this).hasClass("icon-checkbox-selected-full")) {
                         oUl.find(".icon-checkbox-no,.icon-checkbox-selected-part").addClass('icon-checkbox-selected-full').
-                              removeClass("icon-checkbox-selected-part icon-checkbox-no");
-                    } else { 
+                        removeClass("icon-checkbox-selected-part icon-checkbox-no");
+                    } else {
                         oUl.find(".icon-checkbox-selected-full,.icon-checkbox-selected-part").addClass('icon-checkbox-no').
                         removeClass("icon-checkbox-selected-full icon-checkbox-selected-part");
                     }
-                } 
+                }
+
                 var oUls = $(this).parentsUntil(".tree").filter("ul");
                 for (var i = 0; i < oUls.length; i++) {
                     if ($(oUls[i]).find(".icon-checkbox-no").length) {
@@ -165,7 +141,7 @@ define(function(require, exports, module) {
                         } else {
                             $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-selected-part").
                             removeClass("icon-checkbox-selected-full icon-checkbox-no");
-                        } 
+                        }
                     } else {
                         $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-selected-full").
                         removeClass("icon-checkbox-selected-part icon-checkbox-no");
@@ -173,6 +149,43 @@ define(function(require, exports, module) {
                 }
             })
             return oSpan;
+        }
+
+        function getResult(key) {
+            var arrs = $(".tree a");
+            var newArr = arrs.filter(function(index, item) {
+                var content = $(item).text();
+                return content.search(key) !== -1
+            })
+            return newArr;
+        }
+
+        /**
+         * 创建树结构搜索框，并添加处理事件
+         */
+        function createSearch() {
+            var oSearch = $("<div class='tree-search'></div>");
+            var oImg = $("<img src='assets/imgs/search.png'>");
+            var oInput = $("<input type='text' placeholder='请输入节点名称'>");
+            var oldArr = []; 
+            oInput.keyup(function(event) { 
+                var ev = event || window.event;
+                if (ev.keyCode === 13) { 
+                    var newArr = oInput.val()?getResult(oInput.val()):[]; 
+                    newArr.lenght===0?oInput.val('抱歉，搜索到0条结果'):
+                                                    oInput.val("搜索到"+newArr.length+"条结果")
+                    for (var i = 0; i < oldArr.length; i++) {
+                        $(oldArr[i]).removeClass("searched")
+                    }
+                    for (var i = 0; i < newArr.length; i++) {
+                        $(newArr[i]).addClass("searched")
+                    }
+                    oldArr = newArr;
+                }
+            });
+
+
+            return oSearch.append(oInput, oImg);
         }
         /**
          * 使用递归遍历数组，创建树结构
@@ -207,15 +220,61 @@ define(function(require, exports, module) {
                     setting.isEdit ? oA.on("dblclick", editLeaf) : "";
                     setting.rightClick ? oA.on("contextmenu", rightClick) : "";
                     item.data ? oA.attr("data", item.data) : "";
+                    item.bindEvent ? oA.on("click", function() {
+                        item.bindEvent($(this).text(), $(this).attr("data"));
+                    }) : "";
                     return $("<li></li>").append(oSpan2, oA);
                 }
             })
             oUl.append(arr);
             return oUl;
         };
-
         var tree = createTree(node).addClass("tree");
         $(id).append(tree);
+        setting.isSearch ? $(id).prepend(createSearch()) : "";
+
+        //如果需要添加数据功能，引入modal模板并执行该function
+        var modal = null;
+        if (setting.rightClick) {
+            if (setting.rightClick.isAdd) {
+                appendModal = require("./modal.js");
+                modal = appendModal("添加内容", [{
+                    title: "节点名称",
+                    id: 'nodeName'
+                }, {
+                    title: "节点内容",
+                    id: "nodeContent"
+                }])
+            };
+        }
+
+        //如果需要右键点击功能，创建一个面板panel
+        var panel = null;
+        var _this = null;
+        if (setting.rightClick) {
+            panel = $("<ul class='hide'></ul>").attr("id", "tree-panel")
+            if (setting.rightClick.isAdd) {
+                var oLi1 = $("<li class='add-node'></li>").html("<button>添加子节点</button>").on("click", function() {
+                    addNode(_this);
+                });
+                panel.append(oLi1);
+            }
+            if (setting.rightClick.isRemove) {
+                var oLi2 = $("<li class='remove-node'></li>").html("<button>删除该节点</button>").on("click", function() {
+                    removeNode(_this);
+                });
+                panel.append(oLi2);
+            }
+            if (setting.rightClick.isEdit) {
+                var oLi3 = $("<li class='edit-node'></li>").html("<button>编辑该节点</button>").on("click", function() {
+                    editLeaf(_this);
+                });
+                panel.append(oLi3);
+            }
+            $("body").append(panel);
+        }
+
+
     }
 
     module.exports = appendTree;

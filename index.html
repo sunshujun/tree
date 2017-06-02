@@ -14,6 +14,7 @@
 
 <body>
     <div id="wrap" style="width:200px;margin:30px auto">
+     
       <!-- <ul id="tree" class="level0 tree">
                  <li>
                      <span class="icon icon-triangle-open"></span>
@@ -44,9 +45,9 @@
                      <span class="icon icon-checkbox-selected-part"></span>
                      <span class="icon icon-triangle-close"></span>父节点二
                      </a>
-                 </li>
-             </ul>    -->
-    </div>
+                 </li> 
+             </ul> 
+          </div> -->
       
 
     <script type="text/javascript" src="sea-module/sea.js"></script>
@@ -81,19 +82,23 @@
         }]
     }, {
         name: "父节点二",
-        data: "www.fu2.com"
+        data: "www.fu2.com",
+        bindEvent:function(name,data){           //默认会传递节点名称,节点data
+            console.log(name+":"+data)
+        }
     }, {
         name: "父节点三",
         data: "www.fu3.com"
     }];
     var setting = {
-        time: 200,  //设置展开收缩时间
-        isEdit: true,  //是否开启编辑功能
+        time: 200,  //设置展开收缩时间 
         rightClick: {   //是否开启右击增删功能
+            isEdit: true,  //是否开启编辑功能
             isAdd: true,
             isRemove: true
         },
-        isChecked:true
+        isChecked:true,  //是否开启复选框
+        isSearch:true
     };
 
     seajs.use("./static/tree.js", function(tree) {
