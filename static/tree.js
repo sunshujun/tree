@@ -167,13 +167,13 @@ define(function(require, exports, module) {
             var oSearch = $("<div class='tree-search'></div>");
             var oImg = $("<img src='assets/imgs/search.png'>");
             var oInput = $("<input type='text' placeholder='请输入节点名称'>");
-            var oldArr = []; 
-            oInput.keyup(function(event) { 
+            var oldArr = [];
+            oInput.keyup(function(event) {
                 var ev = event || window.event;
-                if (ev.keyCode === 13) { 
-                    var newArr = oInput.val()?getResult(oInput.val()):[]; 
-                    newArr.lenght===0?oInput.val('抱歉，搜索到0条结果'):
-                                                    oInput.val("搜索到"+newArr.length+"条结果")
+                if (ev.keyCode === 13) {
+                    var newArr = oInput.val() ? getResult(oInput.val()) : [];
+                    newArr.lenght === 0 ? oInput.val('抱歉，搜索到0条结果') :
+                        oInput.val("搜索到" + newArr.length + "条结果")
                     for (var i = 0; i < oldArr.length; i++) {
                         $(oldArr[i]).removeClass("searched")
                     }
@@ -182,7 +182,7 @@ define(function(require, exports, module) {
                     }
                     oldArr = newArr;
                 }
-            }); 
+            });
             return oSearch.append(oInput, oImg);
         }
         /**
@@ -191,7 +191,8 @@ define(function(require, exports, module) {
          * @param {Array} node为传入的数据
          * @return {Object} 返回树结构
          */
-        var level = 0; 
+        var level = 0;
+
         function createTree(node) {
             var oUl = $("<ul></ul>");
             oUl.id = level++;
