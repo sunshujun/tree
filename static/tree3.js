@@ -253,21 +253,49 @@ define(function(require, exports, module) {
                             var oA = $("<a></a>").text(data[0]).prepend(oSpan).attr("data", data[1]);
                             oA.on("click", function() {
                                 var obj = this;
-                                _this._nodeEvents.shrinkTree(_this.time, obj)
+                                _this._nodeEvents.toggleSelected(obj)
                             });
+                            if (this.panel || this.modal) {
+                                oA.on("contextmenu", function(event) {
+                                	alert(123)
+                                    var obj = this;
+                                    evevt = event || window.event;
+                                    event.preventDefault();
+                                    event.returnValue = false;
+                                    _this._nodeEvents.rightClick(_this, obj);
+                                    rightClickNode = _this._nodeEvents.rightClickNode;
+                                })
+                            };
                             $(rightClickNode).next().append($("<li></li>").append(oA));
                         } else {
                             var oSpan1 = $("<span></span>").addClass("icon icon-triangle-open");
-                            $(rightClickNode).before(oSpan1);
+                            oSpan1.on("click", function() {
+                                var obj = this;
+                                _this._nodeEvents.shrinkTree(_this.time, obj)
+                            });
+                            $(rightClickNode).before(oSpan1).parent().addClass("parent");
                             $(rightClickNode).find("span").removeClass("icon-file").addClass("icon-folder-open");
                             var oSpan2 = $("<span></span>").addClass("icon icon-file");
                             var oA = $("<a></a>").text(data[0]).prepend(oSpan2).attr("data", data[1]);
+                            oA.on("click", function() {
+                                var obj = this;
+                                _this._nodeEvents.toggleSelected(obj)
+                            });
+                            if (this.panel || this.modal) {
+                                oA.on("contextmenu", function(event) { 
+                                    var obj = this;
+                                    evevt = event || window.event;
+                                    event.preventDefault();
+                                    event.returnValue = false;
+                                    _this._nodeEvents.rightClick(_this, obj);
+                                    rightClickNode = _this._nodeEvents.rightClickNode;
+                                })
+                            };
                             var oLi = $("<li class='parent'></li>").append(oA);
                             $(rightClickNode).after($("<ul></ul>").append(oLi));
                         }
                         json.pIdName = $(rightClickNode).parent().attr("id");
                         _this.datas.push(json);
-                        console.log(_this.datas);
                     })
                 }
 
