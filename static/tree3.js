@@ -43,10 +43,10 @@ define(function(require, exports, module) {
                 data: ""
             }],
             newDatas: [], //存储转换格式之后的数据
-            panel: null,
-            modal: null
+            panel: null, //生成后的增删改面板
+            modal: null //生成后的添加节点内容模态框
         };
-        var opts = $.extend(true, defaults, options)
+        var opts = $.extend(true, defaults, options);
 
         var _cerateTree = {
             _init: function(opts) {
@@ -107,27 +107,71 @@ define(function(require, exports, module) {
                 })
             },
             /**
-             * 根据设置，添加modal,panel
+             *添加checkbox方法
+             * */
+            _addCheckbox: function() {
+                var _this = this;
+                var oSpan = $("<span></span>").addClass("icon icon-checkbox-no");
+                oSpan.on("click", function() {
+                    var oUl = $(this).next().next();
+
+                    if ($(this).hasClass("icon-checkbox-selected-part")) {
+                        $(this).removeClass("icon-checkbox-selected-part").addClass("icon-checkbox-no");
+                    } else {
+                        $(this).toggleClass('icon-checkbox-no icon-checkbox-selected-full ').removeClass("icon-checkbox-selected-part");
+                    }
+
+                    if (oUl.is("ul")) {
+                        if ($(this).hasClass("icon-checkbox-selected-full")) {
+                            oUl.find(".icon-checkbox-no,.icon-checkbox-selected-part").addClass('icon-checkbox-selected-full').
+                            removeClass("icon-checkbox-selected-part icon-checkbox-no");
+                        } else {
+                            oUl.find(".icon-checkbox-selected-full,.icon-checkbox-selected-part").addClass('icon-checkbox-no').
+                            removeClass("icon-checkbox-selected-full icon-checkbox-selected-part");
+                        }
+                    }
+
+                    var oUls = $(this).parentsUntil(".tree").filter("ul");
+                    for (var i = 0; i < oUls.length; i++) {
+                        if ($(oUls[i]).find(".icon-checkbox-no").length) {
+                            if ($(oUls[i]).find(".icon-checkbox-no").length === $(oUls[i]).find("[class*='icon-checkbox']").length) {
+                                $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-no").
+                                removeClass("icon-checkbox-selected-full icon-checkbox-selected-part");
+                            } else {
+                                $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-selected-part").
+                                removeClass("icon-checkbox-selected-full icon-checkbox-no");
+                            }
+                        } else {
+                            $(oUls[i]).parent().find("span:eq(1)").addClass("icon-checkbox-selected-full").
+                            removeClass("icon-checkbox-selected-part icon-checkbox-no");
+                        }
+                    }
+                })
+                return oSpan;
+            },
+            /**
+             * 根据设置，添加modal,panel,checkbox
              * */
             _addDom: function() {
-                if (this.isAdd || this.isRemve || this.isEdit) {
-                    this.panel = $("<ul class='hide'></ul>").attr("id", "tree-panel")
-                    if (this.isAdd) {
+                var _this = this;
+                if (_this.isAdd || _this.isRemve || _this.isEdit) {
+                    _this.panel = $("<ul class='hide'></ul>").attr("id", "tree-panel")
+                    if (_this.isAdd) {
                         var oLi1 = $("<li class='add-node'></li>").html("<button>添加子节点</button>")
-                        this.panel.append(oLi1);
+                        _this.panel.append(oLi1);
                     }
-                    if (this.isRemove) {
+                    if (_this.isRemove) {
                         var oLi2 = $("<li class='remove-node'></li>").html("<button>删除该节点</button>")
-                        this.panel.append(oLi2);
+                        _this.panel.append(oLi2);
                     }
-                    if (this.isEdit) {
+                    if (_this.isEdit) {
                         var oLi3 = $("<li class='edit-node'></li>").html("<button>编辑该节点</button>")
-                        this.panel.append(oLi3);
+                        _this.panel.append(oLi3);
                     }
-                    $("body").append(this.panel);
+                    $("body").append(_this.panel);
                 };
-                if (this.isAdd) {
-                    this.modal = createModal({
+                if (_this.isAdd) {
+                    _this.modal = createModal({
                         title: "添加节点内容",
                         data: [{
                             title: "节点名称",
@@ -137,24 +181,38 @@ define(function(require, exports, module) {
                             id: "nodeContent"
                         }]
                     })
-                    $("body").append(this.modal.ele);
+                    $("body").append(_this.modal.ele);
+                };
+                if (_this.isChecked) {
+                    //调用_addCheckBox
+                    $(_this.element).find("li>a").before(_this._addCheckbox());
                 }
+
             },
             /**
              * 节点需要绑定的事件
              * */
             _nodeEvents: {
+                /**
+                 * 收缩扩展下级树
+                 * */
                 shrinkTree: function(time, obj) {
                     $(obj).toggleClass("icon-triangle-close").toggleClass("icon-triangle-open");
                     $(obj).siblings("a:first").find("span").toggleClass("icon-folder-close").toggleClass("icon-folder-open");
                     $(obj).siblings("ul:first").slideToggle(time);
                 },
+                /**
+                 * 改变a标签选中背景
+                 * */
                 oldSelected: $("<a></a>"), //记录每次选中的a标签
                 toggleSelected: function(obj) {
                     this.oldSelected.removeClass("cur-selected");
                     $(obj).addClass("cur-selected");
                     this.oldSelected = $(obj);
                 },
+                /**
+                 * a标签右击，弹出面板事件
+                 * */
                 rightClickNode: null, //记录每次右击时的a标签
                 rightClick: function(_this, obj) {
                     this.rightClickNode = obj;
@@ -165,12 +223,12 @@ define(function(require, exports, module) {
                 }
             },
             /**
-             * 绑定事件
+             * 为树节点绑定事件
              * */
             _bindEvent: function() {
                 var _this = this;
                 //为收缩图标绑定收缩事件 
-                $(_this.element).find(".parent span:first").on("click", function() {
+                $(_this.element).find(".parent [class*='icon-triangle']").on("click", function() {
                     var obj = this;
                     _this._nodeEvents.shrinkTree(_this.time, obj)
                 });
@@ -213,7 +271,6 @@ define(function(require, exports, module) {
                                     }
                                 })
                             }
-                            console.log(_this.datas)
                         }
                         oInput.blur(changeCon);
                         oInput.keydown(function(event) {
@@ -255,9 +312,8 @@ define(function(require, exports, module) {
                                 var obj = this;
                                 _this._nodeEvents.toggleSelected(obj)
                             });
-                            if (this.panel || this.modal) {
+                            if (_this.panel || _this.modal) {
                                 oA.on("contextmenu", function(event) {
-                                	alert(123)
                                     var obj = this;
                                     evevt = event || window.event;
                                     event.preventDefault();
@@ -266,14 +322,18 @@ define(function(require, exports, module) {
                                     rightClickNode = _this._nodeEvents.rightClickNode;
                                 })
                             };
-                            $(rightClickNode).next().append($("<li></li>").append(oA));
+                            var oSpan1=null;
+                            if(_this.isChecked){
+                                 oSpan1=_this._addCheckbox()
+                            }
+                            $(rightClickNode).next().append($("<li></li>").append(oSpan1,oA));
                         } else {
                             var oSpan1 = $("<span></span>").addClass("icon icon-triangle-open");
                             oSpan1.on("click", function() {
                                 var obj = this;
                                 _this._nodeEvents.shrinkTree(_this.time, obj)
                             });
-                            $(rightClickNode).before(oSpan1).parent().addClass("parent");
+                            $(rightClickNode).parent().addClass("parent").prepend(oSpan1);
                             $(rightClickNode).find("span").removeClass("icon-file").addClass("icon-folder-open");
                             var oSpan2 = $("<span></span>").addClass("icon icon-file");
                             var oA = $("<a></a>").text(data[0]).prepend(oSpan2).attr("data", data[1]);
@@ -281,8 +341,8 @@ define(function(require, exports, module) {
                                 var obj = this;
                                 _this._nodeEvents.toggleSelected(obj)
                             });
-                            if (this.panel || this.modal) {
-                                oA.on("contextmenu", function(event) { 
+                            if (_this.panel || _this.modal) {
+                                oA.on("contextmenu", function(event) {
                                     var obj = this;
                                     evevt = event || window.event;
                                     event.preventDefault();
@@ -291,7 +351,11 @@ define(function(require, exports, module) {
                                     rightClickNode = _this._nodeEvents.rightClickNode;
                                 })
                             };
-                            var oLi = $("<li class='parent'></li>").append(oA);
+                             var oSpan3=null;
+                            if(_this.isChecked){
+                                 oSpan3=_this._addCheckbox();
+                            }
+                            var oLi = $("<li class='parent'></li>").append(oSpan3,oA);
                             $(rightClickNode).after($("<ul></ul>").append(oLi));
                         }
                         json.pIdName = $(rightClickNode).parent().attr("id");
